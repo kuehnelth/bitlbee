@@ -673,6 +673,19 @@ static void twitter_handle_command(struct im_connection *ic, char *message)
 			twitter_log(ic, "Could not undo last action");
 
 		goto eof;
+	} else if (g_strcasecmp(cmd[0], "url") == 0) {
+        bee_user_t *bu = NULL;
+		if (cmd[1] == NULL) {
+            id = td->log[td->log_id].id;
+            bu = td->log[td->log_id].bu;
+		} else
+            id = twitter_message_id_from_command_arg(ic, cmd[1], &bu);
+        if (id && bu)
+            twitter_log(ic, "https://twitter.com/%s/status/%" G_GUINT64_FORMAT, bu->handle, id);
+        else
+			twitter_log(ic, "Could not find tweet");
+
+		goto eof;
 	} else if ((g_strcasecmp(cmd[0], "favourite") == 0 ||
 		    g_strcasecmp(cmd[0], "favorite") == 0 ||
 		    g_strcasecmp(cmd[0], "fav") == 0) && cmd[1]) {
