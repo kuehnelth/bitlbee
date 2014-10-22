@@ -1382,3 +1382,18 @@ void twitter_favourite_tweet(struct im_connection *ic, guint64 id)
 	               ic, 1, args, 2, TWITTER_HTTP_USER_ACK);
 	g_free(args[1]);
 }
+
+/**
+ * Unfavourite a tweet.
+ */
+void twitter_unfavourite_tweet(struct im_connection *ic, guint64 id)
+{
+	char *args[2] = {
+		"id",
+		NULL,
+	};
+	args[1] = g_strdup_printf("%llu", (unsigned long long) id);
+	twitter_http_f(ic, TWITTER_FAVORITE_DESTROY_URL, twitter_http_post,
+	               ic, 1, args, 2, TWITTER_HTTP_USER_ACK);
+	g_free(args[1]);
+}

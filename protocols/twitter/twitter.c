@@ -682,6 +682,15 @@ static void twitter_handle_command(struct im_connection *ic, char *message)
 			twitter_log(ic, "Please provide a message ID or username.");
 		}
 		goto eof;
+	} else if ((g_strcasecmp(cmd[0], "unfavourite") == 0 ||
+		    g_strcasecmp(cmd[0], "unfavorite") == 0 ||
+		    g_strcasecmp(cmd[0], "unfav") == 0) && cmd[1]) {
+		if ((id = twitter_message_id_from_command_arg(ic, cmd[1], NULL))) {
+			twitter_unfavourite_tweet(ic, id);
+		} else {
+			twitter_log(ic, "Please provide a message ID or username.");
+		}
+		goto eof;
 	} else if (g_strcasecmp(cmd[0], "follow") == 0 && cmd[1]) {
 		twitter_add_buddy(ic, cmd[1], NULL);
 		goto eof;
