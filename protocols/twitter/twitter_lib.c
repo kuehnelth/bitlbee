@@ -766,6 +766,46 @@ static void twitter_status_show_chat(struct im_connection *ic, struct twitter_xm
 }
 
 /**
+ * Function that is called to see events like (un)favorites
+ */
+static void twitter_event_show_chat(struct im_connection *ic, struct twitter_xml_status *status, struct twitter_xml_user *sender, const char *type)
+{
+	struct twitter_data *td = ic->proto_data;
+	struct groupchat *gc = NULL;
+	gboolean me = g_strcasecmp(td->user, sender->screen_name) == 0;
+	char msg[200];
+
+	if (status->is_filter && status->hashtags != NULL) {
+	      GSList *i;
+	      for (i = td->hashtag_chats; i != NULL; i = g_slist_next(i)) {
+			gc = i->data;
+			if (g_slist_find_custom(status->hashtags, gc->title, (GCompareFunc)twitter_utf_cmp))
+			      break;
+			gc = NULL;
+	      }
+	} else {
+	      gc = twitter_groupchat_init(ic);
+	}
+
+	if (gc == NULL)
+	      return;
+
+	if (!me)
+		/* MUST be done before twitter_msg_add_id() to avoid #872. */
+		twitter_add_buddy(ic, gc, sender->screen_name, sender->name);
+
+    g_snprintf(msg, sizeof(msg), "/me %sd %s", type, status->text);
+
+	// Say it!
+	if (me) {
+		printf("ignore\n");
+	} else {
+		imcb_chat_msg(gc, sender->screen_name, msg, 0, 0);
+	}
+
+}
+
+/**
  * Function that is called to see statuses as private messages.
  */
 static void twitter_status_show_msg(struct im_connection *ic, struct twitter_xml_status *status)
@@ -980,7 +1020,10 @@ static gboolean twitter_stream_handle_event(struct im_connection *ic, json_value
 		}
 		txu_free(us);
 		txu_free(ut);
-	}
+	} else if (strcmp(type, "favorite") == 0 || strcmp(type, "unfavorite") == 0){
+        struct twitter_xml_user *us = twitter_xt_get_user(source);
+        twitter_event_show_chat(ic, twitter_xt_get_status(json_o_get(o, "target_object")), us, type);
+    }
 	
 	return TRUE;
 }
